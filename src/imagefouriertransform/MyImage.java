@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
@@ -16,7 +17,7 @@ public class MyImage {
 
     BufferedImage image;
 
-    int[][] array2D;
+    Complex[][] array2D;
 
     /**
      * Create an image from file.
@@ -27,14 +28,14 @@ public class MyImage {
         try {
             this.image = ImageIO.read(new File(filename));
 
-            array2D = new int[image.getHeight()][image.getWidth()];
+            array2D = new Complex[image.getHeight()][image.getWidth()];
 
             for (int row = 0; row < image.getHeight(); row++) {
                 for (int col = 0; col < image.getWidth(); col++) {
                     int colorInt = image.getRGB(col, row);
                     Color c = new Color(colorInt);
                     int grayLevel = (c.getRed() + c.getGreen() + c.getBlue()) / 3;
-                    array2D[row][col] = grayLevel;
+                    array2D[row][col] = new Complex(grayLevel, 0);
                 }
             }
         } catch (IOException ex) {
@@ -47,14 +48,24 @@ public class MyImage {
      *
      * @param height
      * @param width
+     * @param setSymmetrical
      */
-    public MyImage(int height, int width) {
+    public MyImage(int height, int width, boolean setSymmetrical) {
         this.image = null;
-        array2D = new int[height][width];
+        array2D = new Complex[height][width];
 
         for (int row = 0; row < height; row++) {
             for (int col = 0; col < width; col++) {
-                array2D[row][col] = 0;
+                array2D[row][col] = new Complex(new Random().nextInt(255), 0);
+            }
+        }
+        if (setSymmetrical) {
+            // Swipe all lines
+            for (int row = 0; row < height; row++) {
+                // Set each cell after the diagonal, i.e. in the top-right half matrix.
+                for (int col = row + 1; col < width; col++) {
+                    array2D[row][col] = array2D[col][row];
+                }
             }
         }
     }
@@ -67,11 +78,50 @@ public class MyImage {
         return array2D[0].length;
     }
 
-    int get(int row, int col) {
+    int getRealPart(int row, int col) {
+        return array2D[row][col].getRealPart();
+    }
+
+    Complex get(int row, int col) {
         return array2D[row][col];
     }
 
+    void set(int row, int col, Complex newVal) {
+        array2D[row][col] = newVal;
+    }
+
     MyImage createEmptyClone() {
-        return new MyImage(this.getHeight(), this.getWidth());
+        return new MyImage(this.getHeight(), this.getWidth(), false);
+    }
+
+    /**
+     * Return value of highest pixel
+     *
+     * @return
+     */
+    int getMax() {
+        int result = 0;
+        for (int row = 0; row < array2D.length; row++) {
+            for (int col = 0; col < array2D[0].length; col++) {
+                int newVal = array2D[row][col].getRealPart();
+                if (newVal > result) {
+                    result = newVal;
+                }
+            }
+        }
+        return result;
+    }
+
+    int getMin() {
+        int result = 0;
+        for (int row = 0; row < array2D.length; row++) {
+            for (int col = 0; col < array2D[0].length; col++) {
+                int newVal = array2D[row][col].getRealPart();
+                if (newVal < result) {
+                    result = newVal;
+                }
+            }
+        }
+        return result;
     }
 }

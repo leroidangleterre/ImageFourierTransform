@@ -1,9 +1,7 @@
 package imagefouriertransform;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JButton;
@@ -20,15 +18,15 @@ public class ImageWindow extends JFrame {
     JPanel buttonsPanel;
     ImagePanel imagePanel;
 
-    int width = 1600, height = 800;
+    int width = 1800, height = 600;
 
     public ImageWindow(MyImage img) {
         super();
 
         mainPanel = new JPanel();
         buttonsPanel = new JPanel();
-        MyImage transformedImage = img.createEmptyClone();
-        imagePanel = new ImagePanel(img, transformedImage);
+
+        imagePanel = new ImagePanel(img);
 
         this.setSize(new Dimension(width, height));
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -52,6 +50,36 @@ public class ImageWindow extends JFrame {
             }
         });
         buttonsPanel.add(zoomMinusButton);
+
+        JButton transformButton = new JButton("transform");
+        transformButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                imagePanel.computeDirectTransform();
+                repaint();
+            }
+        });
+        buttonsPanel.add(transformButton);
+
+        JButton transformBackButton = new JButton("transform back");
+        transformBackButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                imagePanel.computeReverseTransform();
+                repaint();
+            }
+        });
+        buttonsPanel.add(transformBackButton);
+
+        JButton displayPixelValuesButton = new JButton("display pixels values");
+        displayPixelValuesButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                imagePanel.toggleDisplayValues();
+                repaint();
+            }
+        });
+        buttonsPanel.add(displayPixelValuesButton);
 
         mainPanel.add(buttonsPanel, BorderLayout.SOUTH);
 
