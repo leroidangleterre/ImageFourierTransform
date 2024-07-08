@@ -13,7 +13,10 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSlider;
 import javax.swing.JTextField;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 /**
  *
@@ -30,8 +33,10 @@ public class ImageWindow extends JFrame {
     ImagePanel transformedPanelMiddle;
     ImagePanel transformedPanelRight;
 
-    int width = 1920, height = 1050;
+    int width = 1900, height = 1050;
     int availableWidth, availableHeight; // for each image
+
+    double percentage; // [0; 100]
 
     private void prepareComponent(JComponent comp, int col, int row, GridBagLayout layout) {
         GridBagConstraints constraints = new GridBagConstraints();
@@ -39,6 +44,7 @@ public class ImageWindow extends JFrame {
         constraints.gridy = row;
         layout.setConstraints(comp, constraints);
         availableWidth = getSize().width / 3;
+        percentage = 0;
     }
 
     public ImageWindow(MyImage imgA, MyImage imgB) {
@@ -116,21 +122,47 @@ public class ImageWindow extends JFrame {
         prepareComponent(transformedPanelRight, 2, 2, layout);
         mainPanel.add(transformedPanelRight);
 
-        //////////////////////////////
-        // Text field for mix value //
-        //////////////////////////////
-        JTextField mixValueField = new JTextField("0");
+        /////////////////////////////////////////
+        // Text field and slider for mix value //
+        ////////////////////////////////////////
+        JTextField mixValueField = new JTextField(percentage + "");
+        JSlider slider = new JSlider(0, 100, 0);
+
         mixValueField.setPreferredSize(new Dimension(100, 30));
         mixValueField.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                percentage = Double.valueOf(e.getActionCommand());
+                slider.setValue((int) percentage);
+                computeMixImage(percentage);
+                computeReverseTransform();
+                repaint();
             }
+
         });
         GridBagConstraints textFieldConstraints = new GridBagConstraints();
         textFieldConstraints.gridx = 1;
         textFieldConstraints.gridy = 3;
         layout.setConstraints(mixValueField, textFieldConstraints);
         mainPanel.add(mixValueField);
+
+        // Slider for mix value
+        slider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                int sliderValue = slider.getValue();
+                percentage = (double) sliderValue;
+                mixValueField.setText("" + percentage);
+                computeMixImage(percentage);
+                computeReverseTransform();
+                repaint();
+            }
+        });
+        GridBagConstraints sliderConstraints = new GridBagConstraints();
+        sliderConstraints.gridx = 2;
+        sliderConstraints.gridy = 3;
+        layout.setConstraints(slider, sliderConstraints);
+        mainPanel.add(slider);
 
         ////////////////////////////
         JButton zoomPlusButton = new JButton("Z+");
@@ -243,6 +275,7 @@ public class ImageWindow extends JFrame {
     public void computeDirectTransform() {
         computeDirectTransform(imagePanelLeft.getImage(), transformedPanelLeft.getImage());
         computeDirectTransform(imagePanelRight.getImage(), transformedPanelRight.getImage());
+        computeMixImage(percentage);
     }
 
     void computeReverseTransform(MyImage imageSource, MyImage imageDest) {
@@ -273,5 +306,18 @@ public class ImageWindow extends JFrame {
 
     public void computeReverseTransform() {
         computeReverseTransform(transformedPanelMiddle.getImage(), imagePanelMiddle.getImage());
+    }
+
+    /**
+     * Compute a weighted sum of two images.
+     *
+     * @param percentage [0, 100]; 0: only image A, 100: only image B.
+     */
+    private void computeMixImage(double percentage) {
+        System.out.println("mix " + percentage);
+        MyImage imgA = transformedPanelLeft.getImage().multiply(1 - percentage / 100);
+        MyImage imgB = transformedPanelRight.getImage().multiply(percentage / 100);
+
+        transformedPanelMiddle.setImage(new MyImage(imgA, imgB));
     }
 }
