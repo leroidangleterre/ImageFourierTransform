@@ -51,12 +51,20 @@ public class MyImage {
      * @param setSymmetrical
      */
     public MyImage(int height, int width, boolean setSymmetrical) {
+        this(height, width, setSymmetrical, false);
+    }
+
+    public MyImage(int height, int width, boolean setSymmetrical, boolean setEmpty) {
         this.image = null;
         array2D = new Complex[height][width];
 
         for (int row = 0; row < height; row++) {
             for (int col = 0; col < width; col++) {
-                array2D[row][col] = new Complex(new Random().nextInt(255), 0);
+                if (setEmpty) {
+                    array2D[row][col] = new Complex(0, 0);
+                } else {
+                    array2D[row][col] = new Complex(new Random().nextInt(255), 0);
+                }
             }
         }
         if (setSymmetrical) {
@@ -91,7 +99,7 @@ public class MyImage {
     }
 
     MyImage createEmptyClone() {
-        return new MyImage(this.getHeight(), this.getWidth(), false);
+        return new MyImage(this.getHeight(), this.getWidth(), false, true);
     }
 
     /**

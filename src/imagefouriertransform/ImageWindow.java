@@ -1,12 +1,19 @@
 package imagefouriertransform;
 
-import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import static java.lang.Math.PI;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 /**
  *
@@ -16,29 +23,121 @@ public class ImageWindow extends JFrame {
 
     JPanel mainPanel;
     JPanel buttonsPanel;
-    ImagePanel imagePanel;
+    ImagePanel imagePanelLeft;
+    ImagePanel imagePanelMiddle;
+    ImagePanel imagePanelRight;
+    ImagePanel transformedPanelLeft;
+    ImagePanel transformedPanelMiddle;
+    ImagePanel transformedPanelRight;
 
-    int width = 1800, height = 600;
+    int width = 1920, height = 1050;
+    int availableWidth, availableHeight; // for each image
 
-    public ImageWindow(MyImage img) {
+    private void prepareComponent(JComponent comp, int col, int row, GridBagLayout layout) {
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.gridx = col;
+        constraints.gridy = row;
+        layout.setConstraints(comp, constraints);
+        availableWidth = getSize().width / 3;
+    }
+
+    public ImageWindow(MyImage imgA, MyImage imgB) {
         super();
 
+        this.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                availableWidth = getSize().width / 3;
+                repaint();
+            }
+        });
+
         mainPanel = new JPanel();
+
+        this.setContentPane(mainPanel);
+        setVisible(true);
+
+        GridBagLayout layout = new GridBagLayout();
+        mainPanel.setLayout(layout);
+        GridBagConstraints constraints = new GridBagConstraints();
+
         buttonsPanel = new JPanel();
 
-        imagePanel = new ImagePanel(img);
-
-        this.setSize(new Dimension(width, height));
+        this.setSize(new Dimension(10, 10));
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        mainPanel.setLayout(new BorderLayout());
-        mainPanel.add(imagePanel, BorderLayout.CENTER);
+        JLabel labelFirst = new JLabel("First Image");
+        prepareComponent(labelFirst, 0, 0, layout);
+        mainPanel.add(labelFirst);
 
+        JLabel middlePanel = new JLabel("Middle Image");
+        prepareComponent(middlePanel, 1, 0, layout);
+        mainPanel.add(middlePanel, constraints);
+
+        JLabel labelSecond = new JLabel("Second Image");
+        prepareComponent(labelSecond, 2, 0, layout);
+        mainPanel.add(labelSecond);
+
+        Dimension myPrefSize = new Dimension(availableWidth, 200);
+
+        // First image
+        imagePanelLeft = new ImagePanel(imgA);
+        imagePanelLeft.setPreferredSize(myPrefSize);
+        prepareComponent(imagePanelLeft, 0, 1, layout);
+        mainPanel.add(imagePanelLeft);
+
+        // First Fourier transform
+        transformedPanelLeft = new ImagePanel(imgA.createEmptyClone(), true);
+        transformedPanelLeft.setPreferredSize(myPrefSize);
+        prepareComponent(transformedPanelLeft, 0, 2, layout);
+        mainPanel.add(transformedPanelLeft);
+
+        // Second image
+        imagePanelMiddle = new ImagePanel(imgA.createEmptyClone());
+        imagePanelMiddle.setPreferredSize(myPrefSize);
+        prepareComponent(imagePanelMiddle, 1, 1, layout);
+        mainPanel.add(imagePanelMiddle);
+
+        // Second Fourier transform
+        transformedPanelMiddle = new ImagePanel(imgA.createEmptyClone(), true);
+        transformedPanelMiddle.setPreferredSize(myPrefSize);
+        prepareComponent(transformedPanelMiddle, 1, 2, layout);
+        mainPanel.add(transformedPanelMiddle);
+
+        // Third image
+        imagePanelRight = new ImagePanel(imgB);
+        imagePanelRight.setPreferredSize(myPrefSize);
+        prepareComponent(imagePanelRight, 2, 1, layout);
+        mainPanel.add(imagePanelRight);
+
+        // Third Fourier transform
+        transformedPanelRight = new ImagePanel(imgB.createEmptyClone(), true);
+        transformedPanelRight.setPreferredSize(myPrefSize);
+        prepareComponent(transformedPanelRight, 2, 2, layout);
+        mainPanel.add(transformedPanelRight);
+
+        //////////////////////////////
+        // Text field for mix value //
+        //////////////////////////////
+        JTextField mixValueField = new JTextField("0");
+        mixValueField.setPreferredSize(new Dimension(100, 30));
+        mixValueField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            }
+        });
+        GridBagConstraints textFieldConstraints = new GridBagConstraints();
+        textFieldConstraints.gridx = 1;
+        textFieldConstraints.gridy = 3;
+        layout.setConstraints(mixValueField, textFieldConstraints);
+        mainPanel.add(mixValueField);
+
+        ////////////////////////////
         JButton zoomPlusButton = new JButton("Z+");
         zoomPlusButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                imagePanel.zoomIn();
+                zoomIn();
             }
         });
         buttonsPanel.add(zoomPlusButton);
@@ -46,7 +145,7 @@ public class ImageWindow extends JFrame {
         zoomMinusButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                imagePanel.zoomOut();
+                zoomOut();
             }
         });
         buttonsPanel.add(zoomMinusButton);
@@ -55,7 +154,7 @@ public class ImageWindow extends JFrame {
         transformButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                imagePanel.computeDirectTransform();
+                computeDirectTransform();
                 repaint();
             }
         });
@@ -65,25 +164,114 @@ public class ImageWindow extends JFrame {
         transformBackButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                imagePanel.computeReverseTransform();
+                computeReverseTransform();
                 repaint();
             }
         });
         buttonsPanel.add(transformBackButton);
 
-        JButton displayPixelValuesButton = new JButton("display pixels values");
-        displayPixelValuesButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                imagePanel.toggleDisplayValues();
-                repaint();
-            }
-        });
-        buttonsPanel.add(displayPixelValuesButton);
+        GridBagConstraints buttonPanelConstraints = new GridBagConstraints();
+        buttonPanelConstraints.gridx = 0;
+        buttonPanelConstraints.gridy = 4;
+        buttonPanelConstraints.gridwidth = 3;
+        layout.setConstraints(buttonsPanel, buttonPanelConstraints);
+        mainPanel.add(buttonsPanel);
 
-        mainPanel.add(buttonsPanel, BorderLayout.SOUTH);
-
-        this.setContentPane(mainPanel);
+        availableWidth = this.getSize().width;
+        availableHeight = this.getSize().height;
+        imagePanelLeft.setPreferredSize(new Dimension(availableWidth, availableHeight));
+        imagePanelMiddle.setPreferredSize(new Dimension(availableWidth, availableHeight));
+        imagePanelRight.setPreferredSize(new Dimension(availableWidth, availableHeight));
+        transformedPanelLeft.setPreferredSize(new Dimension(availableWidth, availableHeight));
+        transformedPanelMiddle.setPreferredSize(new Dimension(availableWidth, availableHeight));
+        transformedPanelRight.setPreferredSize(new Dimension(availableWidth, availableHeight));
+        setPreferredSize(new Dimension(width, height));
         setVisible(true);
+        repaint();
+        pack();
+        zoomIn();
+        zoomOut();
+        revalidate();
+    }
+
+    private void zoomOut() {
+        availableWidth = getSize().width / 3;
+        imagePanelLeft.zoomOut();
+        imagePanelMiddle.zoomOut();
+        imagePanelRight.zoomOut();
+        transformedPanelLeft.zoomOut();
+        transformedPanelMiddle.zoomOut();
+        transformedPanelRight.zoomOut();
+        repaint();
+    }
+
+    private void zoomIn() {
+        availableWidth = getSize().width / 3;
+        imagePanelLeft.zoomIn();
+        imagePanelMiddle.zoomIn();
+        imagePanelRight.zoomIn();
+        transformedPanelLeft.zoomIn();
+        transformedPanelMiddle.zoomIn();
+        transformedPanelRight.zoomIn();
+        repaint();
+    }
+
+    private void computeDirectTransform(MyImage imageSource, MyImage imageDest) {
+        System.out.println("Computing transform...");
+        double M = imageSource.getHeight();
+        double N = imageSource.getWidth();
+
+        for (int v = 0; v < M; v++) {
+            for (int u = 0; u < N; u++) {
+
+                // Compute the value of pixel (u,v) of the tranform
+                Complex Fuv = new Complex();
+                for (int y = 0; y < M; y++) {
+                    for (int x = 0; x < N; x++) {
+                        double argument = -2 * PI * ((double) (u * x) / N + (double) (v * y) / M);
+                        Complex exponentPart = new Complex(argument);
+                        Fuv.increment(exponentPart.multiply(imageSource.get(y, x)));
+                    }
+                }
+                Fuv = Fuv.divide(M * N);
+                imageDest.set(v, u, Fuv);
+            }
+        }
+        System.out.println("Computing transform done");
+    }
+
+    public void computeDirectTransform() {
+        computeDirectTransform(imagePanelLeft.getImage(), transformedPanelLeft.getImage());
+        computeDirectTransform(imagePanelRight.getImage(), transformedPanelRight.getImage());
+    }
+
+    void computeReverseTransform(MyImage imageSource, MyImage imageDest) {
+        System.out.println("Computing reverse transform...");
+        double M = imageSource.getHeight();
+        double N = imageSource.getWidth();
+
+        for (int x = 0; x < N; x++) {
+            System.out.println(((double) x / N) + " done.");
+            for (int y = 0; y < M; y++) {
+
+                // Compute the value of pixel (x,y) of the decoded image
+                Complex fxy = new Complex();
+                for (int u = 0; u < N; u++) {
+                    for (int v = 0; v < M; v++) {
+                        double argument = 2 * PI * ((double) (u * x) / N + (double) (v * y) / M);
+                        Complex exponentPart = new Complex(argument);
+                        fxy.increment(exponentPart.multiply(imageSource.get(v, u)));
+                    }
+                }
+
+                // Set the pixel on the decoded image.
+                imageDest.set(y, x, fxy);
+            }
+        }
+        System.out.println("Computing reverse transform done");
+    }
+
+    public void computeReverseTransform() {
+        computeReverseTransform(transformedPanelMiddle.getImage(), imagePanelMiddle.getImage());
     }
 }
