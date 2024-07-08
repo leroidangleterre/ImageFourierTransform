@@ -27,7 +27,7 @@ public class ImagePanel extends JPanel {
 
     public ImagePanel(MyImage imageParam) {
         image = imageParam;
-        zoom = 18;
+        zoom = 10;
         displayValues = false;
         mustChangeScale = false;
     }
@@ -39,6 +39,11 @@ public class ImagePanel extends JPanel {
 
     public MyImage getImage() {
         return image;
+    }
+
+    public void setImage(MyImage newImage) {
+        this.image = newImage;
+        repaint();
     }
 
     @Override

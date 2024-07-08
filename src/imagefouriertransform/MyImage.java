@@ -15,8 +15,6 @@ import javax.imageio.ImageIO;
  */
 public class MyImage {
 
-    BufferedImage image;
-
     Complex[][] array2D;
 
     /**
@@ -26,7 +24,7 @@ public class MyImage {
      */
     public MyImage(String filename) {
         try {
-            this.image = ImageIO.read(new File(filename));
+            BufferedImage image = ImageIO.read(new File(filename));
 
             array2D = new Complex[image.getHeight()][image.getWidth()];
 
@@ -54,8 +52,16 @@ public class MyImage {
         this(height, width, setSymmetrical, false);
     }
 
+    /**
+     * Create an empty image with given dimensions, with the option of setting
+     * it to be symmetrical and/or empty.
+     *
+     * @param height
+     * @param width
+     * @param setSymmetrical
+     * @param setEmpty
+     */
     public MyImage(int height, int width, boolean setSymmetrical, boolean setEmpty) {
-        this.image = null;
         array2D = new Complex[height][width];
 
         for (int row = 0; row < height; row++) {
@@ -76,6 +82,43 @@ public class MyImage {
                 }
             }
         }
+    }
+
+    /**
+     * Create an image by computing the sum of two images.
+     *
+     * @param imgA
+     * @param imgB
+     */
+    public MyImage(MyImage imgA, MyImage imgB) {
+
+        int height = imgA.getHeight();
+        int width = imgA.getWidth();
+        this.array2D = new Complex[height][width];
+
+        for (int row = 0; row < array2D.length; row++) {
+            for (int col = 0; col < array2D[0].length; col++) {
+                Complex sum = (imgA.array2D[row][col]).add(imgB.array2D[row][col]);
+                this.array2D[row][col] = sum;
+            }
+        }
+    }
+
+    /**
+     * Multiply all pixels of the image by the same value
+     *
+     * @return
+     */
+    public MyImage multiply(double multiplicator) {
+
+        MyImage multipliedImage = this.createEmptyClone();
+
+        for (int row = 0; row < array2D.length; row++) {
+            for (int col = 0; col < array2D[0].length; col++) {
+                multipliedImage.array2D[row][col] = this.array2D[row][col].multiply(multiplicator);
+            }
+        }
+        return multipliedImage;
     }
 
     int getHeight() {

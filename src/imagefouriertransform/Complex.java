@@ -78,6 +78,16 @@ public class Complex {
     }
 
     /**
+     * Compute a new value that is the sum of this number and another one.
+     *
+     * @param addedValue
+     * @return
+     */
+    public Complex add(Complex addedValue) {
+        return new Complex(this.realPart + addedValue.realPart, this.imaginaryPart + addedValue.imaginaryPart);
+    }
+
+    /**
      * Change the value of this complex number by adding another one to it
      *
      * @param addedValue
