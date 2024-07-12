@@ -279,12 +279,10 @@ public class ImageWindow extends JFrame {
     }
 
     void computeReverseTransform(MyImage imageSource, MyImage imageDest) {
-        System.out.println("Computing reverse transform...");
         double M = imageSource.getHeight();
         double N = imageSource.getWidth();
 
         for (int x = 0; x < N; x++) {
-            System.out.println(((double) x / N) + " done.");
             for (int y = 0; y < M; y++) {
 
                 // Compute the value of pixel (x,y) of the decoded image
@@ -301,7 +299,6 @@ public class ImageWindow extends JFrame {
                 imageDest.set(y, x, fxy);
             }
         }
-        System.out.println("Computing reverse transform done");
     }
 
     public void computeReverseTransform() {
